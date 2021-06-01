@@ -1,0 +1,53 @@
+# constants
+MAX_AGE = 10 #Plant's maximum age
+Age_Sep = 0.5 #Plant's max age growth behaviour separation
+MAX_INTERNODE_RADIUS = 1.2 #internode growth factor radius
+
+Ir = 0.5 #Internode starting radius
+Idr = 1.05 #Internode radius growth factor
+MAX_INTERNODE_LENGTH = 2 #internode growth factor length
+
+Il = 1 #Internode starting length
+Idl = 1.05 #Internode length growth factor
+MAX_LEAF_SIZE = 2 #max leaf growth factor
+
+Lr = 0.3 #Leaf starting Size
+Ldr = 1.2 #Leaf Growth Factor
+Ldf = 0.9 #Leaf dying age factor
+
+Axiom: A(0)
+derivation length: 10
+
+production:
+I(l,r): #Internode
+	if l < MAX_INTERNODE_LENGTH * Il:
+		if r < MAX_INTERNODE_RADIUS * Ir:
+			produce I(Idl*l, Idr*r)
+		else:
+			produce I(Idl*l, r)
+	else:
+		if r < MAX_INTERNODE_RADIUS * Ir:
+			produce I(l, Idr*r)
+		else:
+			produce I(l, r)
+			
+L(age,s): #Leaf
+	if s < MAX_LEAF_SIZE * Lr:
+		produce L(age+1,Ldr*s) 
+	else:
+		produce L(age+1,s) 
+		
+A(age): # Apex
+	if age == MAX_AGE: #TOP
+		produce I(0.25*Il,Ir)L(1,0.5*Lr)I(0.25*Il,Ir)T
+	elif age < Age_Sep*MAX_AGE: #LOWER PART, OPPOSITE PHYLLOTAXY
+		produce I(Il,Ir)L(1,Lr)/(180)L(1,Lr)/(137.5)A(age+1)
+	else: #UPPER PART, ALTERNATE PHYLLOTAXY
+		produce [f(0.5*Il)L(1,Lr)]/(137.5)I(Il,Ir)L(1,Lr)/(137.5)A(age+1)
+		
+homomorphism:
+I(l,r) --> F(l,r)
+L(age,s):
+	if age < Ldf * MAX_AGE:
+		produce ~("Leaf", s)
+T --> ~("Flower")
